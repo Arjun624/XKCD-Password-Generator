@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+import argparse
+import random
+
+
+def main():
+    # Parse command line arguments.
+    arg_parser = argparse.ArgumentParser(description='Generate a secure, memorable password using the XKCD method')
+
+    # Add the -w words argument.
+    arg_parser.add_argument("-w",
+                            "--words",
+                            help="include WORDS words in the password (default=4)",
+                            type=int, required=False)
+
+    # Add the -c capitalize argument.
+    arg_parser.add_argument("-c",
+                            "--caps",
+                            help="capitalize the first letter of CAPS random words (default=0)",
+                            type=int, required=False)
+
+    # Add the -n number argument.
+    arg_parser.add_argument("-n",
+                            "--numbers",
+                            help="insert NUMBERS random numbers in the password (default=0)",
+                            type=int, required=False)
+
+    # Add the -s symbols argument.
+    arg_parser.add_argument("-s",
+                            "--symbols",
+                            help="insert SYMBOLS random symbols in the password (default=0)",
+                            type=int, required=False)
+
+    args = arg_parser.parse_args()
+
+    # Set the number of words, capitalization, numbers, and symbols.
+    word_count = args.words
+    cap_count = args.caps
+    num_count = args.numbers
+    sy_count = args.symbols
+
+    # Set the default values if the arguments are not specified.
+    if word_count is None:
+        word_count = 4
+
+    if cap_count is None:
+        cap_count = 0
+
+    if num_count is None:
+        num_count = 0
+
+    if sy_count is None:
+        sy_count = 0
+
+    # Default the capitalization count to the word count if it is greater than the word count and print a warning.
+    if cap_count > word_count:
+        cap_count = word_count
+        print("Warning: Cannot capitalize more words than there are in the password. Setting capitalization to "
+              + str(cap_count) + ".")
+
+    # Default the number count to the word count if it is greater than the word count and print a warning.
+    if num_count > word_count:
+        num_count = word_count
+        print("Warning: Cannot insert more numbers than there are in the password. Setting number insertion to "
+              + str(num_count) + ".")
+
+    # Default the symbol count to the word count if it is greater than the word count and print a warning.
+    if sy_count > word_count:
+        sy_count = word_count
+        print("Warning: Cannot insert more symbols than there are in the password. Setting symbol insertion to "
+              + str(sy_count) + ".")
+
+    # Create the list of words
+    word_dictionary = open("words.txt", "r")
+    word_list = word_dictionary.readlines()
+    word_dictionary.close()
+
+    # Pick random words from the list, depending on the number of words specified
+    # and add them to the list of words to be used in the password.
+    password = []
+    for count in range(word_count):
+        password.append(random.choice(word_list).strip())
+
+    # Randomly capitalize words in the password, depending on the number of capitalization words specified.
+    lowercase_words = password.copy()
+    for count in range(cap_count):
+        word = random.choice(lowercase_words)
+        password[password.index(word)] = word.capitalize()
+        # Remove the word from the list of words that can be capitalized, so that it is not capitalized twice.
+        lowercase_words.remove(word)
+
+    # Randomly add numbers in the password (either at the start or end of the word),
+    # depending on the number of numbered words specified.
+    numbered_words = password.copy()
+    for count in range(num_count):
+        # Randomly pick whether to insert the number at the start or end of the word.
+        end = random.choice([True, False])
+        word = random.choice(numbered_words)
+        if end:
+            password[password.index(word)] = word + str(random.randint(0, 9))
+        else:
+            password[password.index(word)] = str(random.randint(0, 9)) + word
+        # Remove the word from the list of words to be numbered, so it isn't picked again.
+        numbered_words.remove(word)
+
+    # Randomly add symbols in the password (either at the start or end of the word),
+    # depending on the number of symbol words specified.
+    symbol_words = password.copy()
+    for count in range(sy_count):
+        # Randomly pick whether to insert the symbol at the start or end of the word.
+        end = random.choice([True, False])
+        word = random.choice(symbol_words)
+        if end:
+            password[password.index(word)] = word + random.choice("~!@#$%^&*.:;")
+        else:
+            password[password.index(word)] = random.choice("~!@#$%^&*.:;") + word
+        # Remove the word from the list of words to be symbolized, so it isn't picked again.
+        symbol_words.remove(word)
+
+    # Combine the words in the password list into a single string and print it.
+    print(''.join(password))
+
+
+# Run the main function.
+if __name__ == '__main__':
+    main()
